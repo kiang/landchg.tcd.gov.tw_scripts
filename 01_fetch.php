@@ -1,84 +1,19 @@
 <?php
-require 'vendor/autoload.php';
-
 $basePath = __DIR__ . '/../landchg.tcd.gov.tw';
 
 $projectYears = ['111', '110', '109', '108', '107', '106', '105', '104', '103', '102', '101', '100', '99', '98', '97', '96', '95', '94', '93'];
 $cities = ['基隆市', '臺北市', '新北市', '桃園市', '新竹縣', '新竹市', '苗栗縣', '臺中市', '南投縣', '彰化縣', '雲林縣', '嘉義縣', '嘉義市', '臺南市', '高雄市', '屏東縣', '宜蘭縣', '花蓮縣', '臺東縣', '金門縣', '澎湖縣', '連江縣'];
 
-use Goutte\Client;
+$baseUrl = 'https://landchg.tcd.gov.tw/Module/RWD/Web/pub_exhibit.aspx';
 
-$client = new Client();
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_COOKIEJAR, '/tmp/landchg_cookies.txt');
+curl_setopt($ch, CURLOPT_COOKIEFILE, '/tmp/landchg_cookies.txt');
 
-$crawler = $client->request('GET', 'https://landchg.tcd.gov.tw/Module/RWD/Web/pub_exhibit.aspx');
-$form = $crawler->filter('form')->form();
-
-$domDocument = new \DOMDocument;
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', '__EVENTTARGET');
-$ff->setAttribute('value', 'ctl00$page_content$ChgPointMarker');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', '__EVENTARGUMENT');
-$ff->setAttribute('value', '');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', '__SCROLLPOSITIONX');
-$ff->setAttribute('value', '0');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', '__SCROLLPOSITIONY');
-$ff->setAttribute('value', '433');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'h_lat');
-$ff->setAttribute('value', '23.042379299657025');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'h_lng');
-$ff->setAttribute('value', '120.40802721756668');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'h_zoom');
-$ff->setAttribute('value', '11');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'ProjectYear');
-$ff->setAttribute('value', '111');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'City');
-$ff->setAttribute('value', '桃園市');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'selectMap');
-$ff->setAttribute('value', '3');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
-
-$ff = $domDocument->createElement('input');
-$ff->setAttribute('name', 'PublicImg');
-$ff->setAttribute('value', '-1');
-$formInput = new \Symfony\Component\DomCrawler\Field\InputFormField($ff);
-$form->set($formInput);
+curl_setopt($ch, CURLOPT_URL, $baseUrl);
+$initialHtml = curl_exec($ch);
 
 $yearPool = [];
 foreach ($projectYears as $projectYear) {
@@ -93,8 +28,37 @@ foreach ($projectYears as $projectYear) {
     foreach ($cities as $city) {
         $targetFile = $rawPath . '/' . $city . '.html';
         if (!file_exists($targetFile)) {
-            $crawler = $client->submit($form, ['City' => $city, 'ProjectYear' => $projectYear]);
-            file_put_contents($targetFile, $client->getResponse()->getContent());
+            $viewState = '';
+            $eventValidation = '';
+            $viewStateGenerator = '';
+            $sourceHtml = $initialHtml;
+
+            if (preg_match('/id="__VIEWSTATE" value="([^"]*)"/', $sourceHtml, $m)) {
+                $viewState = $m[1];
+            }
+            if (preg_match('/id="__EVENTVALIDATION" value="([^"]*)"/', $sourceHtml, $m)) {
+                $eventValidation = $m[1];
+            }
+            if (preg_match('/id="__VIEWSTATEGENERATOR" value="([^"]*)"/', $sourceHtml, $m)) {
+                $viewStateGenerator = $m[1];
+            }
+
+            $postData = http_build_query([
+                '__VIEWSTATE' => $viewState,
+                '__VIEWSTATEGENERATOR' => $viewStateGenerator,
+                '__EVENTVALIDATION' => $eventValidation,
+                'ctl00$page_content$ProjectYear' => $projectYear,
+                'ctl00$page_content$City' => $city,
+                'ctl00$page_content$btnSearch' => '查詢',
+            ]);
+
+            curl_setopt($ch, CURLOPT_URL, $baseUrl);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            $responseHtml = curl_exec($ch);
+
+            file_put_contents($targetFile, $responseHtml);
+            $initialHtml = $responseHtml;
             echo "{$targetFile}\n";
         }
         $fh = fopen($dataPath . '/' . $city . '.csv', 'w');
@@ -144,6 +108,8 @@ foreach ($projectYears as $projectYear) {
         }
     }
 }
+
+curl_close($ch);
 
 $sumPath = $basePath . '/data/csv/summary';
 if (!file_exists($sumPath)) {

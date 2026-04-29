@@ -12,9 +12,6 @@ curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_COOKIEJAR, '/tmp/landchg_cookies.txt');
 curl_setopt($ch, CURLOPT_COOKIEFILE, '/tmp/landchg_cookies.txt');
 
-curl_setopt($ch, CURLOPT_URL, $baseUrl);
-$initialHtml = curl_exec($ch);
-
 foreach ($projectYears as $projectYear) {
     $rawPath = $basePath . '/raw/' . $projectYear;
     if (!file_exists($rawPath)) {
@@ -27,10 +24,13 @@ foreach ($projectYears as $projectYear) {
     foreach ($cities as $city) {
         $targetFile = $rawPath . '/' . $city . '.html';
 
+        curl_setopt($ch, CURLOPT_HTTPGET, true);
+        curl_setopt($ch, CURLOPT_URL, $baseUrl);
+        $sourceHtml = curl_exec($ch);
+
         $viewState = '';
         $eventValidation = '';
         $viewStateGenerator = '';
-        $sourceHtml = $initialHtml;
 
         if (preg_match('/id="__VIEWSTATE" value="([^"]*)"/', $sourceHtml, $m)) {
             $viewState = $m[1];
@@ -57,7 +57,6 @@ foreach ($projectYears as $projectYear) {
         $responseHtml = curl_exec($ch);
 
         file_put_contents($targetFile, $responseHtml);
-        $initialHtml = $responseHtml;
 
         $csvFile = $dataPath . '/' . $city . '.csv';
 

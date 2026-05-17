@@ -151,7 +151,7 @@
                 iconSize: [16, 16],
                 iconAnchor: [8, 8]
             })
-        }).addTo(map).bindPopup('搜尋中心點').openPopup();
+        }).addTo(map).bindPopup('<b>搜尋中心點</b><br><button class="btn btn-primary btn-sm mt-1" onclick="document.getElementById(\'searchBtn\').click()">搜尋此位置</button>').openPopup();
         map.setView([lat, lng], 14);
     }
 

@@ -38,7 +38,7 @@
                 <label class="form-label small mb-1">變異類型</label>
                 <select id="change_type" class="form-select form-select-sm" multiple size="5">
                     @foreach($changeTypes as $ct)
-                        <option value="{{ $ct }}">{{ $ct }}</option>
+                        <option value="{{ $ct->change_type }}">{{ $ct->change_type }} ({{ number_format($ct->cnt) }})</option>
                     @endforeach
                 </select>
                 <small class="text-muted">按住 Ctrl 多選，不選則為全部</small>

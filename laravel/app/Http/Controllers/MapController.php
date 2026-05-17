@@ -12,7 +12,9 @@ class MapController extends Controller
     {
         $years = ChangePoint::distinct()->orderBy('year')->pluck('year');
         $counties = ChangePoint::distinct()->orderBy('county_city')->pluck('county_city');
-        $changeTypes = ChangePoint::distinct()->orderBy('change_type')->pluck('change_type')->filter();
+        $changeTypes = ChangePoint::select('change_type', \DB::raw('count(*) as cnt'))
+            ->whereNotNull('change_type')->where('change_type', '!=', '')
+            ->groupBy('change_type')->orderByDesc('cnt')->get();
         $verificationResults = ChangePoint::distinct()->orderBy('verification_result')->pluck('verification_result')->filter();
 
         return view('map.index', compact('years', 'counties', 'changeTypes', 'verificationResults'));

@@ -129,9 +129,19 @@
     const searchBtn = document.getElementById('searchBtn');
     const pasteInput = document.getElementById('latlng_paste');
 
+    function updatePasteDisplay() {
+        if (latInput.value && lngInput.value) {
+            pasteInput.value = latInput.value + ',' + lngInput.value;
+        }
+    }
+
+    latInput.addEventListener('input', updatePasteDisplay);
+    lngInput.addEventListener('input', updatePasteDisplay);
+
     function setSearchPoint(lat, lng) {
         latInput.value = lat;
         lngInput.value = lng;
+        pasteInput.value = lat + ',' + lng;
         searchBtn.disabled = false;
         if (searchMarker) map.removeLayer(searchMarker);
         searchMarker = L.marker([lat, lng], {

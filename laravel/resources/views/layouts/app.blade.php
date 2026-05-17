@@ -14,6 +14,8 @@
         .sidebar { height: 100vh; overflow-y: auto; }
         .result-item { cursor: pointer; }
         .result-item:hover { background-color: #f8f9fa; }
+        .marker-cluster-violation { background-color: rgba(220, 53, 69, 0.6); }
+        .marker-cluster-violation div { background-color: rgba(220, 53, 69, 0.8); }
     </style>
     @yield('styles')
 </head>

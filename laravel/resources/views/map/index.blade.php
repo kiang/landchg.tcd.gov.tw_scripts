@@ -118,7 +118,23 @@
         '臺灣通用電子地圖(淺色)': nlscEmap2
     }).addTo(map);
 
-    const markers = L.markerClusterGroup();
+    const markers = L.markerClusterGroup({
+        iconCreateFunction: function(cluster) {
+            const children = cluster.getAllChildMarkers();
+            const hasViolation = children.some(m => m.options.isViolation);
+            const count = cluster.getChildCount();
+            let size = 'small';
+            if (count >= 100) size = 'large';
+            else if (count >= 10) size = 'medium';
+            const className = 'marker-cluster marker-cluster-' + size +
+                (hasViolation ? ' marker-cluster-violation' : '');
+            return L.divIcon({
+                html: '<div><span>' + count + '</span></div>',
+                className: className,
+                iconSize: L.point(40, 40)
+            });
+        }
+    });
     map.addLayer(markers);
 
     let searchMarker = null;
@@ -230,7 +246,8 @@
 
                 data.results.forEach((p, i) => {
                     const color = getMarkerColor(p.verification_result);
-                    const marker = L.marker([p.latitude, p.longitude], { icon: createIcon(color) });
+                    const isViolation = p.verification_result && p.verification_result.includes('違規') && p.verification_result !== '非違規';
+                    const marker = L.marker([p.latitude, p.longitude], { icon: createIcon(color), isViolation });
                     marker.bindPopup(`
                         <b>${p.point_id}</b><br>
                         年度: ${p.year} (${p.year + 1911})<br>

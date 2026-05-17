@@ -96,9 +96,26 @@
 <script>
 (function() {
     const map = L.map('map').setView([23.7, 120.9], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
+
+    const nlscEmap = L.tileLayer('https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+        attribution: '&copy; 內政部國土測繪中心',
+        maxZoom: 20
+    });
+    const nlscPhoto = L.tileLayer('https://wmts.nlsc.gov.tw/wmts/PHOTO2/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+        attribution: '&copy; 內政部國土測繪中心',
+        maxZoom: 20
+    });
+    const nlscEmap2 = L.tileLayer('https://wmts.nlsc.gov.tw/wmts/EMAP2/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+        attribution: '&copy; 內政部國土測繪中心',
+        maxZoom: 20
+    });
+
+    nlscEmap.addTo(map);
+
+    L.control.layers({
+        '通用版電子地圖': nlscEmap,
+        '正射影像': nlscPhoto,
+        '臺灣通用電子地圖(淺色)': nlscEmap2
     }).addTo(map);
 
     const markers = L.markerClusterGroup();

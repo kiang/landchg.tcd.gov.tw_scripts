@@ -15,7 +15,7 @@
         .result-item { cursor: pointer; }
         .result-item:hover { background-color: #f8f9fa; }
         .marker-cluster-violation { background-color: rgba(220, 53, 69, 0.6); }
-        .marker-cluster-violation div { background-color: rgba(220, 53, 69, 0.8); }
+        .marker-cluster-violation div { background-color: rgba(220, 53, 69, 0.8); color: #fff; }
     </style>
     @yield('styles')
 </head>

@@ -143,8 +143,8 @@
 
     function getMarkerColor(verificationResult) {
         if (!verificationResult) return '#888';
+        if (verificationResult === '非違規' || verificationResult === '合法') return '#28a745';
         if (verificationResult.includes('違規')) return '#dc3545';
-        if (verificationResult === '合法' || verificationResult === '非違規') return '#28a745';
         return '#ffc107';
     }
 

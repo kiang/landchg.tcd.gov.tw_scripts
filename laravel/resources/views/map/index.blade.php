@@ -36,12 +36,12 @@
 
             <div class="mb-2">
                 <label class="form-label small mb-1">變異類型</label>
-                <select id="change_type" class="form-select form-select-sm">
-                    <option value="">全部</option>
+                <select id="change_type" class="form-select form-select-sm" multiple size="5">
                     @foreach($changeTypes as $ct)
                         <option value="{{ $ct }}">{{ $ct }}</option>
                     @endforeach
                 </select>
+                <small class="text-muted">按住 Ctrl 多選，不選則為全部</small>
             </div>
 
             <div class="mb-2">
@@ -221,8 +221,11 @@
             year_from: document.getElementById('year_from').value,
             year_to: document.getElementById('year_to').value,
             county_city: document.getElementById('county_city').value,
-            change_type: document.getElementById('change_type').value,
             verification_result: document.getElementById('verification_result').value,
+        });
+        const changeTypeSelect = document.getElementById('change_type');
+        Array.from(changeTypeSelect.selectedOptions).forEach(opt => {
+            params.append('change_type[]', opt.value);
         });
 
         fetch(`/search?${params}`)

@@ -42,7 +42,8 @@ class MapController extends Controller
             $query->where('county_city', $request->county_city);
         }
         if ($request->filled('change_type')) {
-            $query->where('change_type', $request->change_type);
+            $changeTypes = (array) $request->input('change_type');
+            $query->whereIn('change_type', $changeTypes);
         }
         if ($request->filled('verification_result')) {
             $query->where('verification_result', $request->verification_result);

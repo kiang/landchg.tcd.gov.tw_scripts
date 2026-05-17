@@ -66,6 +66,11 @@
             </div>
 
             <div class="mb-2">
+                <label class="form-label small mb-1">快速輸入座標</label>
+                <input type="text" id="latlng_paste" class="form-control form-control-sm mb-1" placeholder="貼上 緯度,經度 例如 25.033,121.565">
+            </div>
+
+            <div class="mb-2">
                 <label class="form-label small mb-1">搜尋中心點（點擊地圖設定）</label>
                 <div class="d-flex gap-2">
                     <input type="text" id="lat" class="form-control form-control-sm" placeholder="緯度">
@@ -105,6 +110,36 @@
     const latInput = document.getElementById('lat');
     const lngInput = document.getElementById('lng');
     const searchBtn = document.getElementById('searchBtn');
+    const pasteInput = document.getElementById('latlng_paste');
+
+    function setSearchPoint(lat, lng) {
+        latInput.value = lat;
+        lngInput.value = lng;
+        searchBtn.disabled = false;
+        if (searchMarker) map.removeLayer(searchMarker);
+        searchMarker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'search-center',
+                html: '<div style="background:#0d6efd;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            })
+        }).addTo(map).bindPopup('搜尋中心點').openPopup();
+        map.setView([lat, lng], 14);
+    }
+
+    pasteInput.addEventListener('input', function() {
+        const val = this.value.trim();
+        const parts = val.split(/[,\s]+/);
+        if (parts.length >= 2) {
+            const a = parseFloat(parts[0]);
+            const b = parseFloat(parts[1]);
+            if (!isNaN(a) && !isNaN(b)) {
+                setSearchPoint(a, b);
+                this.value = '';
+            }
+        }
+    });
 
     function getMarkerColor(verificationResult) {
         if (!verificationResult) return '#888';
@@ -123,21 +158,7 @@
     }
 
     map.on('click', function(e) {
-        const lat = e.latlng.lat.toFixed(6);
-        const lng = e.latlng.lng.toFixed(6);
-        latInput.value = lat;
-        lngInput.value = lng;
-        searchBtn.disabled = false;
-
-        if (searchMarker) map.removeLayer(searchMarker);
-        searchMarker = L.marker(e.latlng, {
-            icon: L.divIcon({
-                className: 'search-center',
-                html: '<div style="background:#0d6efd;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            })
-        }).addTo(map).bindPopup('搜尋中心點').openPopup();
+        setSearchPoint(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
     });
 
     searchBtn.addEventListener('click', doSearch);
